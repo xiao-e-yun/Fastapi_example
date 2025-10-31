@@ -37,12 +37,15 @@ async def read_foods(skip: int = 0, limit: int = 10):
         "total": 2300000 
     }
 
-items = []
 class Item(BaseModel):
     name: str
     description: str | None = Field(default=None, title="The description of the item", max_length=300)
     price: float = Field(gt=0, description="The price must be greater than zero")
     tax: float | None = None
+
+items = [
+    Item(name="Item1", description="The first item", price=10.5, tax=1.5)
+]
 
 @app.get("/items/{id}")
 async def read_item(id: int):
