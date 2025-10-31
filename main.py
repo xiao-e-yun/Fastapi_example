@@ -62,11 +62,11 @@ async def read_items(skip: int = 0, limit: int = 10):
 
 @app.post("/items/")
 async def create_item(item: Item):
-    item_dict = item.model_dump()
-    if item.tax: 
-        item_dict['price_with_tax'] = item.price + item.tax
-    items.append(item_dict)
-    return item_dict
+    items.append(item)
+    dump = item.model_dump()
+    if item.tax:
+        dump.update({"price_with_tax": item.price + item.tax})
+    return { "id": len(items) - 1, "item": dump }
 
 @app.put("/items/{id}")
 async def update_item(id: Annotated[int, Path(title="The ID of the item to get",ge=0, le=1000)], item: Item):
