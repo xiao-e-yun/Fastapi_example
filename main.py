@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from pydantic import BaseModel, Field
-from fastapi import FastAPI, Path
+from fastapi import Body, FastAPI, Path
 import random
 
 app = FastAPI()
@@ -49,13 +49,13 @@ items = [
 
 @app.get("/items/{id}")
 async def read_item(id: int):
-    return items[id] if id < len(items) else { "error": "Item not found" }
+    return { "id": id, "item": items[id] } if id < len(items) else { "error": "Item not found" }
 
 @app.get("/items/")
 async def read_items(skip: int = 0, limit: int = 10):
     return { 
         "items": [
-            items[i] for i in range(skip, min(skip + limit, len(items)))
+            { "id": i, "item": items[i] } for i in range(skip, min(skip + limit, len(items)))
         ], 
         "total": len(items)
     }
@@ -69,11 +69,9 @@ async def create_item(item: Item):
     return { "id": len(items) - 1, "item": dump }
 
 @app.put("/items/{id}")
-async def update_item(id: Annotated[int, Path(title="The ID of the item to get",ge=0, le=1000)], item: Item):
+async def update_item(id: int, item: Annotated[Item, Body(embed=True)]):
     if id >= len(items):
         return { "error": "Item not found" }
-    item_dict = item.model_dump()
-    if item.tax: 
-        item_dict['price_with_tax'] = item.price + item.tax
-    items[id] = item_dict
-    return item_dict
+    results = { "id": id, "item": item }
+    items[id] = item
+    return results
