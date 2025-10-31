@@ -1,5 +1,7 @@
-from pydantic import BaseModel
-from fastapi import FastAPI
+from typing import Annotated
+
+from pydantic import BaseModel, Field
+from fastapi import FastAPI, Path
 import random
 
 app = FastAPI()
@@ -38,8 +40,8 @@ async def read_foods(skip: int = 0, limit: int = 10):
 items = []
 class Item(BaseModel):
     name: str
-    description: str
-    price: float
+    description: str | None = Field(default=None, title="The description of the item", max_length=300)
+    price: float = Field(gt=0, description="The price must be greater than zero")
     tax: float | None = None
 
 @app.get("/items/{id}")
@@ -64,7 +66,7 @@ async def create_item(item: Item):
     return item_dict
 
 @app.put("/items/{id}")
-async def update_item(id: int, item: Item):
+async def update_item(id: Annotated[int, Path(title="The ID of the item to get",ge=0, le=1000)], item: Item):
     if id >= len(items):
         return { "error": "Item not found" }
     item_dict = item.model_dump()
