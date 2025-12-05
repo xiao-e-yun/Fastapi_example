@@ -2,12 +2,24 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Optional
 from inspect import signature
+import os
+import secrets
+import warnings
 
 from fastapi import Header, HTTPException
 from jose import JWTError, jwt
 
-# Secret key for JWT encoding/decoding (in production, use environment variable)
-SECRET_KEY = "your-secret-key-change-this-in-production"
+# Get secret key from environment variable, or generate random string with warning
+SECRET_KEY = os.environ.get("JWT_SECRET_TOKEN")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_urlsafe(32)
+    warnings.warn(
+        "JWT_SECRET_TOKEN environment variable is not set. Using a randomly generated secret key. "
+        "This means tokens will be invalidated on server restart. "
+        "Please set JWT_SECRET_TOKEN environment variable for production use.",
+        UserWarning
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
