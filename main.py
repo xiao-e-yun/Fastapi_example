@@ -1,8 +1,11 @@
 from typing import Annotated
+from datetime import timedelta
 
 from pydantic import BaseModel, Field
 from fastapi import Body, FastAPI, Path
 import random
+
+from auth import create_access_token, verify, ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI()
 
@@ -16,7 +19,22 @@ with open('adjectives.txt', 'r', encoding='utf-8') as f:
 async def read_root():
     return {"Hello": "World"}
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/login")
+async def login(login_data: LoginRequest):
+    """Login endpoint that accepts any username and password and returns a JWT token."""
+    access_token = create_access_token(
+        username=login_data.username,
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"token": access_token}
+
+
 @app.get("/foods/{id}")
+@verify
 async def read_food(id: int):
     if (id > 2300000 or id < 0):
         return {"error": "Invalid food ID"}
@@ -26,6 +44,7 @@ async def read_food(id: int):
     }
 
 @app.get("/foods/")
+@verify
 async def read_foods(skip: int = 0, limit: int = 10):
     return { 
         "foods": [
