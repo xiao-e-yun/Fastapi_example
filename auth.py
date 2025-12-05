@@ -37,26 +37,14 @@ def create_access_token(username: str, expires_delta: Optional[timedelta] = None
     return encoded_jwt
 
 
-def verify_token(authorization: Optional[str] = Header(None)):
+def verify_token(token: Optional[str] = Header(None)):
     """Verify JWT token from Authorization header."""
-    if not authorization:
+    print("Verifying token...")
+    print(f"Authorization header: {token}")
+    if not token:
         raise HTTPException(
             status_code=401,
             detail={"error": "Please login to access this resource"}
-        )
-    
-    # Extract token from "Bearer <token>" format
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(
-                status_code=401,
-                detail={"error": "Invalid authentication scheme. Please login."}
-            )
-    except ValueError:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "Invalid authorization header format. Please login."}
         )
     
     try:
