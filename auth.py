@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from functools import wraps
 from typing import Optional
-from inspect import signature
 import os
 import secrets
 import warnings
@@ -86,21 +84,3 @@ def verify_token(authorization: Optional[str] = Header(None)):
             detail={"error": "Invalid token. Please login."}
         )
 
-
-def verify(func):
-    """Decorator to verify JWT token for protected endpoints."""
-    sig = signature(func)
-    
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        # Get authorization from kwargs if it's there, otherwise raise error
-        authorization = kwargs.pop('authorization', None)
-        verify_token(authorization)
-        return await func(*args, **kwargs)
-    
-    # Add authorization parameter to wrapper's signature
-    wrapper.__signature__ = sig.replace(parameters=list(sig.parameters.values()) + [
-        signature(verify_token).parameters['authorization']
-    ])
-    
-    return wrapper
