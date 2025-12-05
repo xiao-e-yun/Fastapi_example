@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Optional
 from inspect import signature
 
-from fastapi import Header, HTTPException, Depends
+from fastapi import Header, HTTPException
 from jose import JWTError, jwt
 
 # Secret key for JWT encoding/decoding (in production, use environment variable)
@@ -15,9 +15,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def create_access_token(username: str, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token with username and expiration time."""
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode = {
         "username": username,
@@ -61,7 +61,7 @@ def verify_token(authorization: Optional[str] = Header(None)):
             )
         
         # Check if token has expired
-        if datetime.utcnow().timestamp() > expire:
+        if datetime.now(timezone.utc).timestamp() > expire:
             raise HTTPException(
                 status_code=401,
                 detail={"error": "Token has expired. Please login."}
