@@ -19,7 +19,7 @@ A simple FastAPI example application demonstrating authentication, REST API endp
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/xiao-e-yun/Fastapi_example.git
+git clone <repository-url>
 cd Fastapi_example
 ```
 
