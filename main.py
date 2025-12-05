@@ -2,10 +2,10 @@ from typing import Annotated
 from datetime import timedelta
 
 from pydantic import BaseModel, Field
-from fastapi import Body, FastAPI, Path
+from fastapi import Body, Depends, FastAPI, Path
 import random
 
-from auth import create_access_token, verify, ACCESS_TOKEN_EXPIRE_MINUTES
+from auth import create_access_token, verify_token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI()
 
@@ -34,8 +34,7 @@ async def login(login_data: LoginRequest):
 
 
 @app.get("/foods/{id}")
-@verify
-async def read_food(id: int):
+async def read_food(id: int, username: str = Depends(verify_token)):
     if (id > 2300000 or id < 0):
         return {"error": "Invalid food ID"}
     return {
@@ -44,8 +43,7 @@ async def read_food(id: int):
     }
 
 @app.get("/foods/")
-@verify
-async def read_foods(skip: int = 0, limit: int = 10):
+async def read_foods(skip: int = 0, limit: int = 10, username: str = Depends(verify_token)):
     return { 
         "foods": [
             { 
