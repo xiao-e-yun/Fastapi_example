@@ -34,7 +34,7 @@ async def login(login_data: LoginRequest):
 
 
 @app.get("/foods/{id}")
-async def read_food(id: int, username: str = Depends(verify_token)):
+async def read_food(id: int, _username: str = Depends(verify_token)):
     if (id > 2300000 or id < 0):
         return {"error": "Invalid food ID"}
     return {
@@ -43,7 +43,7 @@ async def read_food(id: int, username: str = Depends(verify_token)):
     }
 
 @app.get("/foods/")
-async def read_foods(skip: int = 0, limit: int = 10, username: str = Depends(verify_token)):
+async def read_foods(skip: int = 0, limit: int = 10, _username: str = Depends(verify_token)):
     return { 
         "foods": [
             { 
