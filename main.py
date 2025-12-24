@@ -2,10 +2,13 @@ from typing import Annotated
 from datetime import timedelta
 
 from pydantic import BaseModel, Field
-from fastapi import Body, Depends, FastAPI, Path
+from fastapi import Body, Depends, FastAPI
 import random
+from dotenv import load_dotenv
 
-from auth import create_access_token, verify_token, ACCESS_TOKEN_EXPIRE_MINUTES
+load_dotenv()
+
+from auth import create_access_token, register_oauth_routes, verify_token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI()
 
@@ -53,6 +56,8 @@ async def read_foods(skip: int = 0, limit: int = 10, _username: str = Depends(ve
         ], 
         "total": 2300000 
     }
+
+register_oauth_routes(app)
 
 class Item(BaseModel):
     name: str

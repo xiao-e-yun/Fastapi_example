@@ -3,8 +3,10 @@ from typing import Optional
 import os
 import secrets
 import warnings
+from fastapi.security import OAuth2PasswordBearer
+import requests
 
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from jose import JWTError, jwt
 
 # Get secret key from environment variable, or generate random string with warning
@@ -72,3 +74,35 @@ def verify_token(token: Optional[str] = Header(None)):
             detail={"error": "Invalid token. Please login."}
         )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID") or "GOOGLE_CLIENT_ID"
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET") or "GOOGLE_CLIENT_SECRET"
+GOOGLE_REDIRECT_URI =os.getenv("GOOGLE_REDIRECT_URI") or "GOOGLE_REDIRECT_URI"
+
+def register_oauth_routes(app):
+    @app.get("/login/google")
+    async def login_google():
+        return {
+            "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email"
+        }
+
+    @app.get("/auth/google")
+    async def auth_google(code: str):
+        token_url = "https://accounts.google.com/o/oauth2/token"
+        data = {
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+        response = requests.post(token_url, data=data)
+        access_token = response.json().get("access_token")
+        user_info = requests.get("https://www.googleapis.com/oauth2/v1/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+        name = user_info.json().get("name")
+        access_token = create_access_token(
+            username=name,
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        return {"token": access_token, "name": name}
